@@ -16,6 +16,7 @@ const LoginPage = () => {
                 localStorage.setItem("user", JSON.stringify(response.user));
                 localStorage.setItem("employeeId", response.user.id);
                 localStorage.setItem("managerId", response.user.managerId);
+                localStorage.setItem("role", response.user.role);
                 navigate("/home"); // Redirect to home page after successful login
             })
             .catch(error => {

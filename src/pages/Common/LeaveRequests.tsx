@@ -1,63 +1,86 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
+import { getAllLeaveRequestsForManagerService, updateLeaveStatusService } from "../../services/leaveServices";
+
+// TypeScript interfaces
+interface EmployeeInfo {
+  _id: string;
+  fullName: string;
+}
 
 interface LeaveRequest {
-  id: number;
-  employeeName: string;
-  type: "Full Day" | "Half Day";
+  _id: string;
+  employeeId: EmployeeInfo;
+  leaveType: "Sick" | "Casual" | "Annual" | "Half Day";
   fromDate: string;
   toDate: string;
   reason: string;
   status: "Pending" | "Approved" | "Rejected";
-  appliedOn: string;
+  appliedAt: string;
 }
 
-const dummyRequests: LeaveRequest[] = [
-  {
-    id: 1,
-    employeeName: "Akash Thakur",
-    type: "Full Day",
-    fromDate: "2025-07-10",
-    toDate: "2025-07-11",
-    reason: "Family function",
-    status: "Pending",
-    appliedOn: "2025-07-08",
-  },
-  {
-    id: 2,
-    employeeName: "Neha Singh",
-    type: "Half Day",
-    fromDate: "2025-07-12",
-    toDate: "2025-07-12",
-    reason: "Doctor appointment",
-    status: "Pending",
-    appliedOn: "2025-07-09",
-  },
-];
+interface NameMap {
+  [key: string]: string;
+}
 
 const LeaveRequests = () => {
-  const [requests, setRequests] = useState<LeaveRequest[]>(dummyRequests);
+  const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
+  const [fullNameMap, setFullNameMap] = useState<NameMap>({});
+  const managerId = localStorage.getItem("managerId") || "";
 
   const handleApprove = () => {
     if (!selectedRequest) return;
-    setRequests(prev =>
-      prev.map(req =>
-        req.id === selectedRequest.id ? { ...req, status: "Approved" } : req
-      )
-    );
+    console.log("Approving request:", selectedRequest._id);
+
+    // Update the request status to Approved
+    updateLeaveStatusService(String(selectedRequest._id), "Approved", managerId)
+      .then(() => {
+        console.log("Leave request approved successfully");
+      })
+      .catch((error) => {
+        console.error("Error approving leave request:", error);
+      });
     setSelectedRequest(null);
   };
 
   const handleReject = () => {
     if (!selectedRequest) return;
-    setRequests(prev =>
-      prev.map(req =>
-        req.id === selectedRequest.id ? { ...req, status: "Rejected" } : req
-      )
-    );
+    console.log("Rejecting request:", selectedRequest._id);
+
+    updateLeaveStatusService(String(selectedRequest._id), "Rejected", managerId)
+      .then(() => {
+        console.log("Leave request rejected successfully");
+      })
+      .catch((error) => {
+        console.error("Error rejecting leave request:", error);
+      });
     setSelectedRequest(null);
   };
+
+  useEffect(() => {
+    if (!managerId) return;
+
+    getAllLeaveRequestsForManagerService(managerId)
+      .then((response) => {
+        const leaves: LeaveRequest[] = response.leaves;
+
+        // Build the fullName map
+        console.log("Fetched leave requests:", leaves);
+        const nameMap: NameMap = {};
+        leaves.forEach((req) => {
+          nameMap[req.employeeId._id] = req.employeeId.fullName;
+        });
+
+        setFullNameMap(nameMap);
+        setRequests(leaves);
+      })
+      .catch((error) => {
+        console.error("Error fetching leave requests:", error);
+      });
+
+      // console.log("Fetched leave requests:", requests);
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -80,15 +103,15 @@ const LeaveRequests = () => {
             <tbody>
               {requests.map((req) => (
                 <tr
-                  key={req.id}
+                  key={req._id}
                   onClick={() => setSelectedRequest(req)}
                   className="border-b cursor-pointer hover:bg-gray-50"
                 >
-                  <td className="px-6 py-4">{req.employeeName}</td>
-                  <td className="px-6 py-4">{req.type}</td>
+                  <td className="px-6 py-4">{fullNameMap[req.employeeId._id]}</td>
+                  <td className="px-6 py-4">{req.leaveType}</td>
                   <td className="px-6 py-4">{req.fromDate}</td>
                   <td className="px-6 py-4">{req.toDate}</td>
-                  <td className="px-6 py-4">{req.appliedOn}</td>
+                  <td className="px-6 py-4">{req.appliedAt}</td>
                   <td className="px-6 py-4">
                     <span
                       className={`text-xs font-semibold px-3 py-1 rounded-full ${
@@ -123,12 +146,15 @@ const LeaveRequests = () => {
               </div>
 
               <div className="space-y-2 text-gray-700 text-sm">
-                <p><strong>Employee:</strong> {selectedRequest.employeeName}</p>
-                <p><strong>Type:</strong> {selectedRequest.type}</p>
+                <p>
+                  <strong>Employee:</strong>{" "}
+                  {fullNameMap[selectedRequest.employeeId._id]}
+                </p>
+                <p><strong>Type:</strong> {selectedRequest.leaveType}</p>
                 <p><strong>From:</strong> {selectedRequest.fromDate}</p>
                 <p><strong>To:</strong> {selectedRequest.toDate}</p>
                 <p><strong>Reason:</strong> {selectedRequest.reason}</p>
-                <p><strong>Applied On:</strong> {selectedRequest.appliedOn}</p>
+                <p><strong>Applied On:</strong> {selectedRequest.appliedAt}</p>
               </div>
 
               <div className="flex justify-end mt-6 gap-4">

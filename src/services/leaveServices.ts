@@ -19,3 +19,23 @@ export const applyLeaveService = async (data: { employeeId: string; managerId:st
         throw error;
     }
 }
+
+export const getAllLeaveRequestsForManagerService = async (managerId: string) => {
+    try {
+        const res = await axiosInstance.get(`/leave/getLeavesByManagerId/${managerId}`);
+        return res.data;
+    } catch (error) {
+        console.error("Error fetching leave requests for manager:", error);
+        throw error;
+    }
+}
+
+export const updateLeaveStatusService = async (id: string, status: string, managerId: string) => {
+    try {
+        const res = await axiosInstance.put(`/leave/approveLeaveByManager/${id}`, { status, managerId });
+        return res.data;
+    } catch (error) {
+        console.error("Error updating leave status:", error);
+        throw error;
+    }
+}
