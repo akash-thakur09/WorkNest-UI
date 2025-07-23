@@ -1,31 +1,133 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaTimes } from "react-icons/fa";
 import profileImg from "../../assets/profile-pic.webp"; // Adjust the path as necessary
 import AttendanceCalendar from "../../components/AttendanceCalendar";
 import { useLiveTimer } from "../../hooks/useLiveTimer";
+import { getEmployeeByIdService } from "../../services/employeeService";
+import { getAnnouncements } from "../../services/announcementService";
+import { PostCheckInService, PutCheckOutService, getEmployeeAttendanceService } from "../../services/attendenceService"; // Assuming this service exists
+
+interface EmployeeInfo {
+    label: string;
+    value: string;
+}
+
+interface Announcement {
+    _id: number;
+    title: string;
+    message: string;
+    postedBy: string;
+    postedDate: Date;
+    expiryDate: Date;
+    visibility?: string; // Optional field for visibility
+}
+
 
 const EmployeeDashboard = () => {
-    // const role = localStorage.getItem("role") || "Employee";
-    const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
-    // const todayHours = new Date().getHours();
-    const checkInTime = "09:00";
-    const checkOutTime = ""; // or set to "17:30" when checked out
-    const liveDuration = useLiveTimer(checkInTime, checkOutTime);
-    const announcements = [
-        { id: 1, title: "Company Meeting", message: "Join us for the quarterly company meeting on Friday at 10 AM.", postedBy: "Admin", postedDate: new Date(), expiryDate: new Date("2023-12-31") },
-        { id: 2, title: "Holiday Schedule", message: "The office will be closed for the holidays from December 24th to January 1st.", postedBy: "HR", postedDate: new Date(), expiryDate: new Date("2023-12-31") },
-        { id: 3, title: "New Policy Update", message: "Please review the updated company policies in the employee handbook.", postedBy: "Admin", postedDate: new Date(), expiryDate: new Date("2023-12-31") },
-        { id: 4, title: "Team Building Event", message: "Join us for a team-building event next month. Details to follow.", postedBy: "Manager", postedDate: new Date(), expiryDate: new Date("2023-12-31") },
-        { id: 5, title: "Health and Safety Training", message: "Mandatory health and safety training for all employees next week.", postedBy: "HR", postedDate: new Date(), expiryDate: new Date("2023-12-31") },
-        { id: 6, title: "Performance Review Schedule", message: "Performance reviews will be conducted next month. Please prepare accordingly.", postedBy: "Admin", postedDate: new Date(), expiryDate: new Date("2023-12-31") },
-        { id: 7, title: "New Software Rollout", message: "We will be rolling out new software next week. Training sessions will be scheduled.", postedBy: "IT", postedDate: new Date(), expiryDate: new Date("2023-12-31") },
-        { id: 8, title: "Employee Recognition Program", message: "Nominate your peers for the Employee of the Month award. Submissions open until the end of the month.", postedBy: "HR", postedDate: new Date(), expiryDate: new Date("2023-12-31") },
-        { id: 9, title: "Office Renovation", message: "The office will undergo renovations starting next week. Please be prepared for some disruptions.", postedBy: "Admin", postedDate: new Date(), expiryDate: new Date("2023-12-31") },
-        { id: 10, title: "Training Workshop", message: "A training workshop on time management will be held next month. Sign up in the employee portal.", postedBy: "Manager", postedDate: new Date(), expiryDate: new Date("2023-12-31") },
-        { id: 11, title: "New Hire Orientation", message: "Orientation for new hires will take place next week. All employees are encouraged to welcome our new team members.", postedBy: "HR", postedDate: new Date(), expiryDate: new Date("2023-12-31") },
-        { id: 12, title: "Feedback Session", message: "We will hold a feedback session next month to gather your thoughts on company policies and work environment.", postedBy: "Admin", postedDate: new Date(), expiryDate: new Date("2023-12-31") },
-        // ...rest of your announcements
-    ];
+    const [employeeInfo, setEmployeeInfo] = useState<Array<EmployeeInfo>>([]);
+    const [announcements, setAnnouncements] = useState<Array<Announcement>>([]);
+    const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+    const [todayAttendance, setTodayAttendance] = useState<{
+        checkIn: string | null;
+        checkOut: string | null;
+        status: string;
+    } | null>(null);
+    const [yesterdayAttendance, setYesterdayAttendance] = useState<{
+        checkIn: string | null;
+        checkOut: string | null;
+        status: string;
+    } | null>(null);
+
+
+    const employeeId = localStorage.getItem("employeeId") || "";
+
+    const liveDuration = useLiveTimer(todayAttendance?.checkIn || "", todayAttendance?.checkOut || "");
+
+
+    const checkInOnClick = () => {
+        PostCheckInService(employeeId)
+            .then((res) => {
+                console.log("Check-in successful", res);
+            })
+            .catch((error) => {
+                if (error.response && error.response.status === 400) {
+                    alert("You have already checked in today.");
+                    return;
+                }
+                console.error("Error during check-in:", error);
+            });
+    }
+
+    const checkOutOnClick = () => {
+        PutCheckOutService(employeeId)
+            .then((res) => {
+                console.log("Check-out successful", res);
+            })
+            .catch((error) => {
+                console.error("Error during check-out:", error);
+            });
+    }
+
+    const getFormattedDate = (date: Date) => {
+        return date.toISOString().split("T")[0]; // YYYY-MM-DD
+    };
+
+    const getYesterdayDate = () => {
+        const date = new Date();
+        date.setDate(date.getDate() - 1);
+        return getFormattedDate(date);
+    };
+
+
+    useEffect(() => {
+        const employeeId = localStorage.getItem("employeeId") || "";
+
+        getEmployeeAttendanceService(employeeId)
+            .then((res) => {
+                const todayStr = getFormattedDate(new Date());
+                const yesterdayStr = getYesterdayDate();
+
+                const todayRecord = res.data.find((entry: any) => entry.date === todayStr);
+                const yesterdayRecord = res.data.find((entry: any) => entry.date === yesterdayStr);
+
+                if (todayRecord) {
+                    setTodayAttendance({
+                        checkIn: todayRecord.checkIn || null,
+                        checkOut: todayRecord.checkOut || null,
+                        status: todayRecord.status,
+                    });
+                }
+
+                if (yesterdayRecord) {
+                    setYesterdayAttendance({
+                        checkIn: yesterdayRecord.checkIn || null,
+                        checkOut: yesterdayRecord.checkOut || null,
+                        status: yesterdayRecord.status,
+                    });
+                }
+            })
+            .catch((err) => {
+                console.error("Error fetching attendance data:", err);
+            });
+    }, []);
+
+
+    // Fetch announcements
+    // This will filter announcements based on the role and current date
+    useEffect(() => {
+        const role = localStorage.getItem("role") || "Employee";
+        getAnnouncements()
+            .then(res => {
+                const filteredAnnouncements = res.data.filter((announcement: Announcement) => {
+                    const currentDate = new Date();
+                    return new Date(announcement.expiryDate) >= currentDate && announcement.visibility === "All" || announcement.visibility === role;
+                });
+                setAnnouncements(filteredAnnouncements);
+            })
+            .catch(error => {
+                console.error("Error fetching announcements:", error);
+            });
+    }, []);
 
     const Holidays = [
         { date: "2023-12-25", name: "Christmas" },
@@ -39,13 +141,26 @@ const EmployeeDashboard = () => {
         // Add more holidays as needed
     ];
 
+    // Fetch employee details 
+    useEffect(() => {
+        const employeeId = localStorage.getItem("employeeId") || "";
+        getEmployeeByIdService(employeeId)
+            .then(data => {
+                // console.log("Employee details fetched:", data);
+                setEmployeeInfo(data.user);
+            })
+            .catch(error => {
+                console.error("Error fetching employee information:", error);
+            });
+    }, []);
+
     const EmployeeInfo = [
-        { label: "Name", value: "John Doe" },
-        { label: "Email", value: "john.doe@example.com" },
-        { label: "Position", value: "Software Engineer" },
-        { label: "Company Experience", value: "3 years" },
-        { label: "Total Experience", value: "5 years" },
-        { label: "Address", value: "123 Main St, Anytown, USA" }
+        { label: "Name", value: employeeInfo?.fullName || "Name" },
+        { label: "Email", value: employeeInfo?.email || "Email" },
+        { label: "Position", value: employeeInfo?.position || "please Update you info" },
+        { label: "Company Experience", value: employeeInfo?.companyExperience || "please Update you info" },
+        { label: "Total Experience", value: employeeInfo?.totalExperience || "please Update you info" },
+        { label: "Address", value: employeeInfo?.address || "please Update you info" }
     ]
 
     return (
@@ -53,25 +168,25 @@ const EmployeeDashboard = () => {
             {/* Top Sections */}
             <div className="bg-gray-300 w-full h-3/4 flex">
                 <div className="w-1/2">
-                <div>
-                    
-                </div>
+                    <div>
+
+                    </div>
                     <div className="h-2/5 flex flex-col m-2">
                         <div className="h-1/5">
                             <h1 className="bg-gray-600 text-white font-bold p-1 rounded-t-lg">Employee Information</h1>
                         </div>
                         <div className="flex h-4/5">
                             <div className="w-1/3 rounded-lg">
-                            {/* Employee profile photo */}
-                            <img src={profileImg} alt="Profile" className="w-full h-full rounded-l-lg" />
-                        </div>
-                        <div className="w-2/3 bg-gray-200 rounded-r-lg">
-                            {/* Employee Information */}
-                            {EmployeeInfo.map((info, index) => (
-                                <p key={index} className="p-1 text-xs"><b>{info.label}:</b> {info.value}</p>
-                            ))}
+                                {/* Employee profile photo */}
+                                <img src={profileImg} alt="Profile" className="w-full h-full rounded-l-lg" />
+                            </div>
+                            <div className="w-2/3 bg-gray-200 rounded-r-lg">
+                                {/* Employee Information */}
+                                {EmployeeInfo.map((info, index) => (
+                                    <p key={index} className="p-1 text-xs"><b>{info.label}:</b> {info.value}</p>
+                                ))}
 
-                        </div>
+                            </div>
                         </div>
                     </div>
                     <div className="h-3/5 flex p-4 m-2 justify-center">
@@ -98,15 +213,25 @@ const EmployeeDashboard = () => {
                         <div className="flex justify-around items-center">
                             <div className="w-1/2">
                                 <div>
-                                    <p className="text-sm">Last Check-In Time: <span className="font-bold">09:00 AM</span></p>
+                                    <p className="text-sm">Last Check-In Time: <span className="font-bold">{yesterdayAttendance?.checkIn || "N/A"}</span></p>
                                 </div>
                                 <div>
-                                    <p className="text-sm">Last Check-Out Time: <span className="font-bold">05:00 PM</span></p>
+                                    <p className="text-sm">Last Check-Out Time: <span className="font-bold">{yesterdayAttendance?.checkOut || "N/A"}</span></p>
                                 </div>
                             </div>
                             <div className=" flex w-1/2 justify-between">
-                                <button className="bg-blue-700 text-white px-4 py-1 rounded hover:bg-blue-800 transition cursor-pointer">Check-In</button>
-                                <button className="bg-red-700 text-white px-4 py-1 rounded hover:bg-red-800 transition cursor-pointer">Check-Out</button>
+                                <button
+                                    className="bg-blue-700 text-white px-4 py-1 rounded hover:bg-blue-800 transition cursor-pointer"
+                                    onClick={checkInOnClick}
+                                >
+                                    Check-In
+                                </button>
+                                <button
+                                    className="bg-red-700 text-white px-4 py-1 rounded hover:bg-red-800 transition cursor-pointer"
+                                    onClick={checkOutOnClick}
+                                >
+                                    Check-Out
+                                </button>
                             </div>
                         </div>
                         <div className="flex justify-between bg-gray-200 my-2 p-2">
@@ -125,7 +250,7 @@ const EmployeeDashboard = () => {
                         <div className="bg-gray-100 text-black p-1 w-full h-4/5 overflow-auto mt-1">
                             {announcements.map((announcement) => (
                                 <div
-                                    key={announcement.id}
+                                    key={announcement._id}
                                     className="cursor-pointer text-sm hover:bg-gray-500 rounded p-2"
                                     onClick={() => setSelectedAnnouncement(announcement)}
                                 >
@@ -182,8 +307,8 @@ const EmployeeDashboard = () => {
                         <p className="text-gray-700">{selectedAnnouncement.message}</p>
                         <div className="text-sm text-gray-500">
                             <p><strong>Posted By:</strong> {selectedAnnouncement.postedBy}</p>
-                            <p><strong>Posted Date:</strong> {selectedAnnouncement.postedDate.toLocaleDateString()}</p>
-                            <p><strong>Expiry Date:</strong> {selectedAnnouncement.expiryDate.toLocaleDateString()}</p>
+                            <p><strong>Posted Date:</strong> {(new Date(selectedAnnouncement.postedDate)).toLocaleDateString()}</p>
+                            <p><strong>Expiry Date:</strong> {(new Date(selectedAnnouncement.expiryDate)).toLocaleDateString()}</p>
                         </div>
                     </div>
                 </div>

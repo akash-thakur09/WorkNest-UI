@@ -8,7 +8,6 @@ import {
   FaClipboardList,
   FaCalendarCheck,
   FaSignOutAlt,
-  FaBullhorn,
   FaArrowLeft,
   FaArrowRight,
 } from "react-icons/fa";
@@ -55,20 +54,9 @@ const navItems = [
     path: "/apply-leave",
     icon: <FaCalendarCheck />,
     label: "Leave",
-    roles: ["Employee"],
+    roles: ["Admin", "HR", "Manager", "Employee"],
   },
-  // {
-  //   path: "/attendance",
-  //   icon: <FaCalendarCheck />,
-  //   label: "Attendance",
-  //   roles: ["Admin", "HR", "Employee"],
-  // },
-  // {
-  //   path: "/announcements",
-  //   icon: <FaBullhorn />,
-  //   label: "Announcements",
-  //   roles: ["Admin", "HR", "Manager", "Employee"],
-  // },
+ 
 ];
 
 const Navbar = () => {
