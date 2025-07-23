@@ -1,26 +1,31 @@
 import { useState } from "react";
 import { loginService } from "../../services/authService";
+import {useNavigate} from "react-router-dom";
 
 const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const navigate = useNavigate();
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        // console.log("Email:", email);
-        // console.log("Password:", password);
         loginService({ email, password })
             .then(response => {
-                console.log("Login successful:", response);
+                console.log("Login successful:", response.user);
                 localStorage.setItem("token", response.token); // Assuming the response contains a token
-                window.location.href = "/dashboard"; // Redirect to dashboard after successful login
+                localStorage.setItem("user", JSON.stringify(response.user));
+                localStorage.setItem("employeeId", response.user.id);
+                localStorage.setItem("managerId", response.user.managerId);
+                navigate("/home"); // Redirect to home page after successful login
             })
             .catch(error => {
                 console.error("Login failed:", error);
                 alert("Login failed. Please check your credentials.");
-                window.location.href = "/login"; // Redirect back to login on failure
+                navigate("/"); // Redirect to login page on failure
+                setEmail(""); // Clear email input
+                setPassword(""); // Clear password input
             });
-    }
+        }
     return (
         <div className="flex w-screen h-screen">
             <div className="bg-gray-500 w-1/2 h-screen">

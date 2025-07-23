@@ -8,7 +8,6 @@ import {
   FaClipboardList,
   FaCalendarCheck,
   FaSignOutAlt,
-  FaBullhorn,
   FaArrowLeft,
   FaArrowRight,
 } from "react-icons/fa";

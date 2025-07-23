@@ -1,15 +1,32 @@
 import React, { useState } from "react";
+import { registerService } from "../../services/authService";
 
-const RegisterPage = () =>{
+const RegisterPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [name, setName] = useState("");
+    const [fullName, setFullName] = useState("");
 
     const handleRegister = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Name:", name);
-        console.log("Email:", email);
-        console.log("Password:", password);
+        const role = 'Employee'; // Assuming a default role for registration
+        const currentDay = new Date();
+        const year = currentDay.getFullYear();
+        const month = String(currentDay.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+        const day = String(currentDay.getDate()).padStart(2, '0');
+
+        const joiningDate = `${year}-${month}-${day}`;
+        // Call the register service with the user data
+        registerService({ fullName, email, password, role, joiningDate })
+            .then(response => {
+                console.log("Registration successful:", response);
+                localStorage.setItem("token", response.token); // Assuming the response contains a token
+                window.location.href = "/"; // Redirect to login after successful registration
+            })
+            .catch(error => {
+                console.error("Registration failed:", error);
+                alert("Registration failed. Please try again.");
+                window.location.href = "/register"; // Redirect back to register on failure
+            });
     }
     return (
         <div className="flex w-screen h-screen">
@@ -23,8 +40,8 @@ const RegisterPage = () =>{
                         <input type="text"
                             placeholder="Full Name"
                             className="border w-full p-2 m-2 rounded"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
                         />
                         <input type="text"
                             placeholder="Email"
@@ -45,7 +62,7 @@ const RegisterPage = () =>{
                         >
                             Sign Up
                         </button>
-                        <p className="m-2">I'm already a Member <a href="/login" className="text-blue-500">Sign In</a></p>
+                        <p className="m-2">I'm already a Member <a href="/" className="text-blue-500">Sign In</a></p>
                     </div>
                 </div>
             </div>

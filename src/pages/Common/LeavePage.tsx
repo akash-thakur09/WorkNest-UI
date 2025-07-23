@@ -1,161 +1,18 @@
 import Navbar from "../../components/Navbar";
+import { applyLeaveService, getAllLeavesByEmployeeIdService } from "../../services/leaveServices";
+import { useEffect } from "react";
 import { useState } from "react";
+
 
 interface Leave {
     id: number;
-    date: string;
-    type: "Full Day" | "Half Day";
+    fromDate: Date;
+    toDate: Date;
+    leaveType: 'Sick' | 'Casual' | 'Annual' | 'Half Day';
     reason: string;
     status: "Approved" | "Pending" | "Rejected";
-    appliedOn: string;
+    appliedAt: Date;
 }
-
-const dummyLeaves: Leave[] = [
-    {
-        id: 1,
-        date: "2025-07-10",
-        type: "Full Day",
-        reason: "Medical Appointment",
-        status: "Approved",
-        appliedOn: "2025-07-08",
-    },
-    {
-        id: 2,
-        date: "2025-07-12",
-        type: "Half Day",
-        reason: "Personal Work",
-        status: "Pending",
-        appliedOn: "2025-07-10",
-    },
-    {
-        id: 3,
-        date: "2025-07-05",
-        type: "Full Day",
-        reason: "Family Event",
-        status: "Rejected",
-        appliedOn: "2025-07-03",
-    },
-    {
-        id: 4,
-        date: "2025-07-15",
-        type: "Half Day",
-        reason: "Urgent Task",
-        status: "Approved",
-        appliedOn: "2025-07-13",
-    },
-    {
-        id: 5,
-        date: "2025-07-20",
-        type: "Full Day",
-        reason: "Vacation",
-        status: "Pending",
-        appliedOn: "2025-07-18",
-    },
-    {
-        id: 6,
-        date: "2025-07-25",
-        type: "Half Day",
-        reason: "Training Session",
-        status: "Approved",
-        appliedOn: "2025-07-23",
-    },
-    {
-        id: 7,
-        date: "2025-07-30",
-        type: "Full Day",
-        reason: "Sick Leave",
-        status: "Rejected",
-        appliedOn: "2025-07-28",
-    },
-    {
-        id: 8,
-        date: "2025-08-02",
-        type: "Half Day",
-        reason: "Meeting with Client",
-        status: "Pending",
-        appliedOn: "2025-07-31",
-    },
-    {
-        id: 9,
-        date: "2025-08-05",
-        type: "Full Day",
-        reason: "Public Holiday",
-        status: "Approved",
-        appliedOn: "2025-08-03",
-    },
-    {
-        id: 10,
-        date: "2025-08-10",
-        type: "Half Day",
-        reason: "Work from Home",
-        status: "Pending",
-        appliedOn: "2025-08-08",
-    },
-    {
-        id: 11,
-        date: "2025-08-15",
-        type: "Full Day",
-        reason: "Conference Attendance",
-        status: "Approved",
-        appliedOn: "2025-08-13",
-    },
-    {
-        id: 12,
-        date: "2025-08-20",
-        type: "Half Day",
-        reason: "Team Building Activity",
-        status: "Pending",
-        appliedOn: "2025-08-18",
-    },
-    {
-        id: 13,
-        date: "2025-08-25",
-        type: "Full Day",
-        reason: "Emergency Leave",
-        status: "Rejected",
-        appliedOn: "2025-08-23",
-    },
-    {
-        id: 14,
-        date: "2025-08-30",
-        type: "Half Day",
-        reason: "Client Meeting",
-        status: "Approved",
-        appliedOn: "2025-08-28",
-    },
-    {
-        id: 15,
-        date: "2025-09-05",
-        type: "Full Day",
-        reason: "Family Function",
-        status: "Pending",
-        appliedOn: "2025-09-03",
-    },
-    {
-        id: 16,
-        date: "2025-09-10",
-        type: "Half Day",
-        reason: "Work-Life Balance",
-        status: "Approved",
-        appliedOn: "2025-09-08",
-    },
-    {
-        id: 17,
-        date: "2025-09-15",
-        type: "Full Day",
-        reason: "Religious Holiday",
-        status: "Rejected",
-        appliedOn: "2025-09-13",
-    },
-    {
-        id: 18,
-        date: "2025-09-20",
-        type: "Half Day",
-        reason: "Project Deadline",
-        status: "Pending",
-        appliedOn: "2025-09-18",
-    },
-];
 
 const getStatusColor = (status: string) => {
     switch (status) {
@@ -171,7 +28,50 @@ const getStatusColor = (status: string) => {
 };
 
 const LeavePage = () => {
-    const [leaves] = useState<Leave[]>(dummyLeaves);
+    const [leaveData, setLeaveData] = useState<Leave[]>([]);
+    const [leaveReason, setLeaveReason] = useState("");
+    const [leaveType, setLeaveType] = useState("Sick");
+    const [fromDate, setFromDate] = useState<Date | null>(null);
+    const [toDate, setToDate] = useState<Date | null>(null);    
+    const [leavePopVisible, setLeavePopVisible] = useState(false);
+    const managerId = localStorage.getItem("managerId");
+    const employeeId = localStorage.getItem("employeeId");
+
+    const applyForLeave = () => {
+        applyLeaveService({
+            employeeId: employeeId!,
+            managerId: managerId!,
+            leaveType,
+            fromDate: fromDate!,
+            toDate: toDate!,
+            reason: leaveReason
+        })
+        .then(response => {
+            console.log("Leave applied successfully:", response);
+            setLeavePopVisible(false);
+            // Optionally, refresh the leave data
+            getAllLeavesByEmployeeIdService(employeeId!)
+                .then(leaves => setLeaveData(leaves.data))
+                .catch(error => console.error("Error fetching leaves after applying:", error));
+        })
+        .catch(error => {
+            console.error("Error applying for leave:", error);
+            alert("Failed to apply for leave. Please try again.");
+        });
+    }
+
+       
+
+    useEffect(() => {
+        getAllLeavesByEmployeeIdService(employeeId!)
+            .then((leaves) => {
+                console.log("Leaves fetched successfully:", leaves?.data);
+                setLeaveData(leaves?.data || []);
+            })
+            .catch((error) => {
+                console.error("Error fetching leaves:", error);
+            });
+    }, [])
 
     return (
         <div className="flex bg-gray-100 overflow-hidden">
@@ -202,79 +102,144 @@ const LeavePage = () => {
                     {/* Header */}
                     <div className="flex justify-between items-center h-[10%] bg-gray-200 p-4">
                         <h1 className="text-xl font-bold text-gray-800">My Leave Requests</h1>
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium cursor-pointer">
+                        <button 
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium cursor-pointer"
+                            onClick={() => setLeavePopVisible(true)}
+                        >
                             + Apply Leave
                         </button>
                     </div>
-                    
+
                     {/* <div className="h-[90%] bg-red-400"> */}
-                        {/* <div className="flex-1 h-[90%] bg-red-400"> */}
-                            {/* Table */}
-                            <div className="rounded shadow h-[80%] overflow-auto">
-                                <table className="min-w-full text-xs text-left text-gray-600">
-                                    <thead className="text-xs uppercase bg-gray-100 text-gray-700">
-                                        <tr>
-                                            <th className="p-2">Date</th>
-                                            <th className="p-2">Type</th>
-                                            <th className="p-2">Reason</th>
-                                            <th className="p-2">Applied On</th>
-                                            <th className="p-2">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {leaves.map((leave) => (
-                                            <tr
-                                                key={leave.id}
-                                                className="border-b hover:bg-gray-100 transition"
+                    {/* <div className="flex-1 h-[90%] bg-red-400"> */}
+                    {/* Table */}
+                    <div className="rounded shadow h-[80%] overflow-auto">
+                        <table className="min-w-full text-xs text-left text-gray-600">
+                            <thead className="text-xs uppercase bg-gray-100 text-gray-700">
+                                <tr>
+                                    <th className="p-2">From Date</th>
+                                    <th className="p-2">To Date</th>
+                                    <th className="p-2">Type</th>
+                                    <th className="p-2">Reason</th>
+                                    <th className="p-2">Applied On</th>
+                                    <th className="p-2">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {leaveData.map((leave) => (
+                                    <tr
+                                        key={leave.id}
+                                        className="border-b hover:bg-gray-100 transition"
+                                    >
+                                        <td className="p-2">{new Date(leave.fromDate).toLocaleDateString()}</td>
+                                        <td className="p-2">{new Date(leave.toDate).toLocaleDateString()}</td>
+                                        <td className="p-2">
+                                            <span
+                                                className={`px-2 py-1 rounded text-xs font-semibold ${leave.leaveType !== "Half Day"
+                                                    ? "bg-blue-100 text-blue-700"
+                                                    : "bg-purple-100 text-purple-700"
+                                                    }`}
                                             >
-                                                <td className="p-2">{leave.date}</td>
-                                                <td className="p-2">
-                                                    <span
-                                                        className={`px-2 py-1 rounded text-xs font-semibold ${leave.type === "Full Day"
-                                                            ? "bg-blue-100 text-blue-700"
-                                                            : "bg-purple-100 text-purple-700"
-                                                            }`}
-                                                    >
-                                                        {leave.type}
-                                                    </span>
-                                                </td>
-                                                <td >{leave.reason}</td>
-                                                <td >{leave.appliedOn}</td>
-                                                <td >
-                                                    <span
-                                                        className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                                                            leave.status
-                                                        )}`}
-                                                    >
-                                                        {leave.status}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        {/* </div> */}
+                                                {leave.leaveType}
+                                            </span>
+                                        </td>
+                                        <td >{leave.reason}</td>
+                                        <td >{new Date(leave.appliedAt).toLocaleDateString()}</td>
+                                        <td >
+                                            <span
+                                                className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
+                                                    leave.status
+                                                )}`}
+                                            >
+                                                {leave.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                     {/* </div> */}
-                    
+                    {/* </div> */}
+
                     {/* <div className="h-[10%] bg-green-300"> */}
-                        {/* Legend */}
-                        <div className="flex gap-4 text-xs text-gray-600 h-[10%] p-4">
-                            <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span> Approved
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 bg-yellow-500 rounded-full inline-block"></span> Pending
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span> Rejected
-                            </div>
+                    {/* Legend */}
+                    <div className="flex gap-4 text-xs text-gray-600 h-[10%] p-4">
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span> Approved
                         </div>
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-yellow-500 rounded-full inline-block"></span> Pending
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span> Rejected
+                        </div>
+                    </div>
                     {/* </div> */}
 
                 </div>
             </div>
 
+            {/* Apply Leave Popup */}
+            {leavePopVisible && (
+                <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded shadow-lg w-1/3">
+                        <h2 className="text-xl font-bold mb-4">Apply for Leave</h2>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            // Logic to apply for leave
+                            applyForLeave();
+                            setLeavePopVisible(false);
+                        }}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium mb-2">Leave Type</label>
+                                <select
+                                    value={leaveType}
+                                    onChange={(e) => setLeaveType(e.target.value)}
+                                    className="border rounded w-full p-2"
+                                >
+                                    <option value="Sick">Sick</option>
+                                    <option value="Casual">Casual</option>
+                                    <option value="Annual">Annual</option>
+                                    <option value="Half Day">Half Day</option>
+                                </select>
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium mb-2">From Date</label>
+                                <input
+                                    type="date"
+                                    value={fromDate ? fromDate.toISOString().split('T')[0] : ''}
+                                    onChange={(e) => setFromDate(new Date(e.target.value))}
+                                    className="border rounded w-full p-2"
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium mb-2">To Date</label>
+                                <input
+                                    type="date"
+                                    value={toDate ? toDate.toISOString().split('T')[0] : ''}
+                                    onChange={(e) => setToDate(new Date(e.target.value))}
+                                    className="border rounded w-full p-2"
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium mb-2">Reason</label>
+                                <textarea
+                                    value={leaveReason}
+                                    onChange={(e) => setLeaveReason(e.target.value)}
+                                    className="border rounded w-full p-2 h-24"
+                                ></textarea>
+                            </div>
+                            <button
+                                type="submit"
+                                className="bg-blue-500 text-white rounded px-4 py-2"
+                            >
+                                Apply
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

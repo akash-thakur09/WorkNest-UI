@@ -1,4 +1,3 @@
-// src/services/axiosInstance.ts
 import axios from "axios";
 
 const axiosInstance = axios.create({
@@ -18,10 +17,8 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Global error handling
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
