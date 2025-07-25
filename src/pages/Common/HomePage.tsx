@@ -2,8 +2,6 @@
 import Navbar from "../../components/Navbar";
 import AdminDashboard from "../Admin/AdminDashboard";
 import EmployeeDashboard from "../Employee/EmployeeDashboard";
-import HRDashboard from "../HR/HRDashboard";
-import ManagerDashboard from "../Manager/ManagerDashboard";
 
 
 const HomePage = () => {
