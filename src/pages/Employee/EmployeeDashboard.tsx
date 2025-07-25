@@ -116,12 +116,13 @@ const EmployeeDashboard = () => {
     // This will filter announcements based on the role and current date
     useEffect(() => {
         const role = localStorage.getItem("role") || "Employee";
-        getAnnouncements()
+        getAnnouncements(role)
             .then(res => {
                 const filteredAnnouncements = res.data.filter((announcement: Announcement) => {
                     const currentDate = new Date();
                     return new Date(announcement.expiryDate) >= currentDate && announcement.visibility === "All" || announcement.visibility === role;
                 });
+                console.log('filteredAnnouncements: ',filteredAnnouncements);
                 setAnnouncements(filteredAnnouncements);
             })
             .catch(error => {
@@ -306,7 +307,7 @@ const EmployeeDashboard = () => {
                         <h2 className="text-xl font-bold">{selectedAnnouncement.title}</h2>
                         <p className="text-gray-700">{selectedAnnouncement.message}</p>
                         <div className="text-sm text-gray-500">
-                            <p><strong>Posted By:</strong> {selectedAnnouncement.postedBy}</p>
+                            <p><strong>Posted By:</strong> {selectedAnnouncement.postedBy.fullName}</p>
                             <p><strong>Posted Date:</strong> {(new Date(selectedAnnouncement.postedDate)).toLocaleDateString()}</p>
                             <p><strong>Expiry Date:</strong> {(new Date(selectedAnnouncement.expiryDate)).toLocaleDateString()}</p>
                         </div>
