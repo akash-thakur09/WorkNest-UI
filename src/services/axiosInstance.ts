@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: process.env.VITE_API_URL,
+  // baseURL: process.env.VITE_API_URL, // uncomment this when you have to run test cases for local
+  baseURL: import.meta.env.VITE_API_URL, //uncomment this when you want to run the UI
   timeout: 10000,
 });
 
