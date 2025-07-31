@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for axiosInstance.ts</title>
+    <title>Code coverage report for attendenceService.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="prettify.css" />
     <link rel="stylesheet" href="base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="index.html">All files</a> axiosInstance.ts</h1>
+        <h1><a href="index.html">All files</a> attendenceService.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">35.71% </span>
+                <span class="strong">52% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>5/14</span>
+                <span class='fraction'>13/25</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">33.33% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>2/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">38.46% </span>
+                <span class="strong">47.36% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>5/13</span>
+                <span class='fraction'>9/19</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -91,63 +91,75 @@
 <a name='L26'></a><a href='#L26'>26</a>
 <a name='L27'></a><a href='#L27'>27</a>
 <a name='L28'></a><a href='#L28'>28</a>
-<a name='L29'></a><a href='#L29'>29</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import axios from "axios";
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import axiosInstance from "./axiosInstance";
 &nbsp;
-const axiosInstance = axios.create({
-  baseURL: process.env.VITE_API_URL, // uncomment this when you have to run test cases for local
-  // baseURL: import.meta.env.VITE_API_URL, //uncomment this when you want to run the UI
-  timeout: 10000,
-});
-&nbsp;
-axiosInstance.interceptors.request.use(
-<span class="fstat-no" title="function not covered" >  (c</span>onfig) =&gt; {
-    const token = <span class="cstat-no" title="statement not covered" >localStorage.getItem("token");</span>
-<span class="cstat-no" title="statement not covered" >    if (token) <span class="cstat-no" title="statement not covered" >config.headers.Authorization = `Bearer ${token}`;</span></span>
-<span class="cstat-no" title="statement not covered" >    return config;</span>
-  },
-<span class="fstat-no" title="function not covered" >  (e</span>rror) =&gt; <span class="cstat-no" title="statement not covered" >Promise.reject(error)</span>
-);
-&nbsp;
-axiosInstance.interceptors.response.use(
-<span class="fstat-no" title="function not covered" >  (r</span>esponse) =&gt; <span class="cstat-no" title="statement not covered" >response,</span>
-<span class="fstat-no" title="function not covered" >  (e</span>rror) =&gt; {
-<span class="cstat-no" title="statement not covered" >    if (error.response?.status === 401) {</span>
-<span class="cstat-no" title="statement not covered" >      localStorage.removeItem("token");</span>
+export const getEmployeeAttendanceService = async (employeeId: string) =&gt; {
+    try {
+        const res = await axiosInstance.get(`/attendance/my-attendance/${employeeId}`);
+        return res.data;
+    } catch (error) {
+        console.error("Error fetching employee attendance:", error);
+        throw error;
     }
-<span class="cstat-no" title="statement not covered" >    return Promise.reject(error);</span>
-  }
-);
+}
 &nbsp;
-export default axiosInstance;
-&nbsp;</pre></td></tr></table></pre>
+export const PostCheckInService = <span class="fstat-no" title="function not covered" >async (e</span>mployeeId: string) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span>
+<span class="cstat-no" title="statement not covered" >    try {</span>
+        const res = <span class="cstat-no" title="statement not covered" >await axiosInstance.post(`/attendance/check-in`, { userId:employeeId });</span>
+        // window.location.reload(); // Reload to reflect changes immediately
+<span class="cstat-no" title="statement not covered" >        return res.data;</span>
+    } catch (error) {
+<span class="cstat-no" title="statement not covered" >        console.error("Error checking in:", error);</span>
+<span class="cstat-no" title="statement not covered" >        throw error;</span>
+    }
+}
+&nbsp;
+export const PutCheckOutService = <span class="fstat-no" title="function not covered" >async (e</span>mployeeId: string) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span>
+<span class="cstat-no" title="statement not covered" >    try {</span>
+        const res = <span class="cstat-no" title="statement not covered" >await axiosInstance.put(`/attendance/check-out`, { userId:employeeId });</span>
+        // window.location.reload(); // Reload to reflect changes immediately
+<span class="cstat-no" title="statement not covered" >        return res.data;</span>
+    } catch (error) {
+<span class="cstat-no" title="statement not covered" >        console.error("Error checking out:", error);</span>
+<span class="cstat-no" title="statement not covered" >        throw error;</span>
+    }
+}</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->

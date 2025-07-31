@@ -22,7 +22,6 @@ interface Announcement {
     visibility?: string; // Optional field for visibility
 }
 
-
 const EmployeeDashboard = () => {
     const [employeeInfo, setEmployeeInfo] = useState<Array<EmployeeInfo>>([]);
     const [announcements, setAnnouncements] = useState<Array<Announcement>>([]);
@@ -37,7 +36,6 @@ const EmployeeDashboard = () => {
         checkOut: string | null;
         status: string;
     } | null>(null);
-
 
     const employeeId = localStorage.getItem("employeeId") || "";
 
@@ -78,7 +76,6 @@ const EmployeeDashboard = () => {
         return getFormattedDate(date);
     };
 
-
     useEffect(() => {
         const employeeId = localStorage.getItem("employeeId") || "";
 
@@ -111,7 +108,6 @@ const EmployeeDashboard = () => {
             });
     }, []);
 
-
     // Fetch announcements
     // This will filter announcements based on the role and current date
     useEffect(() => {
@@ -130,6 +126,7 @@ const EmployeeDashboard = () => {
             });
     }, []);
 
+    // Company's holiday
     const Holidays = [
         { date: "2023-12-25", name: "Christmas" },
         { date: "2024-01-01", name: "New Year's Day" },
