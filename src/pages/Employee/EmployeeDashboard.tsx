@@ -97,7 +97,6 @@ const EmployeeDashboard = () => {
         date.setDate(date.getDate() - 1);
         return getFormattedDate(date);
     };
-
 // get attendenece of the employee
     useEffect(() => {
        if(employeeId){
@@ -116,6 +115,7 @@ const EmployeeDashboard = () => {
                            checkIn: todayRecord.checkIn || null,
                            checkOut: todayRecord.checkOut || null,
                            status: todayRecord.status,
+                           date:todayRecord.date,
                        });
                    }
    
@@ -124,6 +124,7 @@ const EmployeeDashboard = () => {
                            checkIn: yesterdayRecord.checkIn || null,
                            checkOut: yesterdayRecord.checkOut || null,
                            status: yesterdayRecord.status,
+                           date:todayRecord.date,
                        });
                    }
                })
@@ -132,7 +133,6 @@ const EmployeeDashboard = () => {
                });
        }
     }, []);
-
 
     // Fetch announcements
     // This will filter announcements based on the role and current date
@@ -152,6 +152,7 @@ const EmployeeDashboard = () => {
             });
     }, []);
 
+    // Company's holiday
     const Holidays = [
         { date: "2023-12-25", name: "Christmas" },
         { date: "2024-01-01", name: "New Year's Day" },
