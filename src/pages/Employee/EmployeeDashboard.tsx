@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { FaTimes } from "react-icons/fa";
 import profileImg from "../../assets/profile-pic.webp"; // Adjust the path as necessary
 import AttendanceCalendar from "../../components/AttendanceCalendar";
@@ -49,7 +49,9 @@ const EmployeeDashboard = () => {
     const [todayAttendance, setTodayAttendance] = useState<AttendanceEntry | null>(null);
     const [yesterdayAttendance, setYesterdayAttendance] = useState<AttendanceEntry | null>(null);
     const liveDuration = useLiveTimer(todayAttendance?.checkIn || "", todayAttendance?.checkOut || "");
-    const employeeId = user?.id || ""
+    
+    // Memoize employeeId to prevent unnecessary re-renders
+    const employeeId = useMemo(() => user?.id || "", [user?.id]);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -62,10 +64,21 @@ const EmployeeDashboard = () => {
                 localStorage.removeItem('user'); // Clean up invalid data
             }
         }
+    }, [setUser]);
+
+    // Memoize date utility functions
+    const getFormattedDate = useCallback((date: Date) => {
+        return date.toISOString().split("T")[0]; // YYYY-MM-DD
     }, []);
 
-    // Check-in and Check-out functions
-    const checkInOnClick = () => {
+    const getYesterdayDate = useCallback(() => {
+        const date = new Date();
+        date.setDate(date.getDate() - 1);
+        return getFormattedDate(date);
+    }, [getFormattedDate]);
+
+    // Memoize check-in and check-out functions
+    const checkInOnClick = useCallback(() => {
         PostCheckInService(employeeId)
             .then((res) => {
                 console.log("Check-in successful", res);
@@ -77,8 +90,9 @@ const EmployeeDashboard = () => {
                 }
                 console.error("Error during check-in:", error);
             });
-    }
-    const checkOutOnClick = () => {
+    }, [employeeId]);
+
+    const checkOutOnClick = useCallback(() => {
         PutCheckOutService(employeeId)
             .then((res) => {
                 console.log("Check-out successful", res);
@@ -86,17 +100,44 @@ const EmployeeDashboard = () => {
             .catch((error) => {
                 console.error("Error during check-out:", error);
             });
-    }
+    }, [employeeId]);
 
-    const getFormattedDate = (date: Date) => {
-        return date.toISOString().split("T")[0]; // YYYY-MM-DD
-    };
+    // Memoize holidays array to prevent recreation on every render
+    const Holidays = useMemo(() => [
+        { date: "2023-12-25", name: "Christmas" },
+        { date: "2024-01-01", name: "New Year's Day" },
+        { date: "2024-07-04", name: "Independence Day" },
+        { date: "2024-11-28", name: "Thanksgiving" },
+        { date: "2024-12-25", name: "Christmas" },
+        { date: "2025-01-01", name: "New Year's Day" },
+        { date: "2025-07-04", name: "Independence Day" },
+        { date: "2025-11-27", name: "Thanksgiving" },
+        // Add more holidays as needed
+    ], []);
 
-    const getYesterdayDate = () => {
-        const date = new Date();
-        date.setDate(date.getDate() - 1);
-        return getFormattedDate(date);
-    };
+    // Memoize employee info array to prevent recreation on every render
+    const EmployeeInfo = useMemo(() => [
+        { label: "Name", value: employeeInfo?.fullName || "Name" },
+        { label: "Email", value: employeeInfo?.email || "Email" },
+        { label: "Position", value: employeeInfo?.position || "please Update you info" },
+        { label: "Company Experience", value: employeeInfo?.companyExperience || "please Update you info" },
+        { label: "Total Experience", value: employeeInfo?.totalExperience || "please Update you info" },
+        { label: "Address", value: employeeInfo?.address || "please Update you info" }
+    ], [employeeInfo]);
+
+    // Memoize current time to prevent unnecessary re-renders
+    const currentTime = useMemo(() => new Date().toLocaleTimeString(), []);
+
+    // Memoize announcement click handler
+    const handleAnnouncementClick = useCallback((announcement: Announcement) => {
+        setSelectedAnnouncement(announcement);
+    }, []);
+
+    // Memoize modal close handler
+    const handleCloseModal = useCallback(() => {
+        setSelectedAnnouncement(null);
+    }, []);
+
 // get attendenece of the employee
     useEffect(() => {
        if(employeeId){
@@ -132,7 +173,7 @@ const EmployeeDashboard = () => {
                    console.error("Error fetching attendance data:", err);
                });
        }
-    }, []);
+    }, [employeeId, getFormattedDate, getYesterdayDate]);
 
     // Fetch announcements
     // This will filter announcements based on the role and current date
@@ -152,19 +193,6 @@ const EmployeeDashboard = () => {
             });
     }, []);
 
-    // Company's holiday
-    const Holidays = [
-        { date: "2023-12-25", name: "Christmas" },
-        { date: "2024-01-01", name: "New Year's Day" },
-        { date: "2024-07-04", name: "Independence Day" },
-        { date: "2024-11-28", name: "Thanksgiving" },
-        { date: "2024-12-25", name: "Christmas" },
-        { date: "2025-01-01", name: "New Year's Day" },
-        { date: "2025-07-04", name: "Independence Day" },
-        { date: "2025-11-27", name: "Thanksgiving" },
-        // Add more holidays as needed
-    ];
-
     // Fetch employee details 
     useEffect(() => {
         if(employeeId){
@@ -177,16 +205,7 @@ const EmployeeDashboard = () => {
                     console.error("Error fetching employee information:", error);
                 });
         }
-    }, []);
-
-    const EmployeeInfo = [
-        { label: "Name", value: employeeInfo?.fullName || "Name" },
-        { label: "Email", value: employeeInfo?.email || "Email" },
-        { label: "Position", value: employeeInfo?.position || "please Update you info" },
-        { label: "Company Experience", value: employeeInfo?.companyExperience || "please Update you info" },
-        { label: "Total Experience", value: employeeInfo?.totalExperience || "please Update you info" },
-        { label: "Address", value: employeeInfo?.address || "please Update you info" }
-    ]
+    }, [employeeId]);
 
     return (
         <div className="w-full h-full flex flex-col ">
@@ -265,7 +284,7 @@ const EmployeeDashboard = () => {
                                 Time Since Check-In: <span className="font-bold">{liveDuration}</span>
                             </div>
                             <div className="text-sm px-2">
-                                Current Time: <span className="font-bold"> {new Date().toLocaleTimeString()}</span>
+                                Current Time: <span className="font-bold"> {currentTime}</span>
                             </div>
                         </div>
                     </div>
@@ -277,7 +296,7 @@ const EmployeeDashboard = () => {
                                 <div
                                     key={announcement._id}
                                     className="cursor-pointer text-sm hover:bg-gray-500 rounded p-2"
-                                    onClick={() => setSelectedAnnouncement(announcement)}
+                                    onClick={() => handleAnnouncementClick(announcement)}
                                 >
                                     <h2>{announcement.title}</h2>
                                 </div>
@@ -322,7 +341,7 @@ const EmployeeDashboard = () => {
                         {/* Close Icon */}
                         <button
                             className="absolute top-2 right-2 text-gray-600 cursor-pointer hover:text-gray-900"
-                            onClick={() => setSelectedAnnouncement(null)}
+                            onClick={handleCloseModal}
                         >
                             <FaTimes size={20} />
                         </button>
