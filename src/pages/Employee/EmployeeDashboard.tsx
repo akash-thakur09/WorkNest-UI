@@ -2,48 +2,69 @@ import { useEffect, useState } from "react";
 import { FaTimes } from "react-icons/fa";
 import profileImg from "../../assets/profile-pic.webp"; // Adjust the path as necessary
 import AttendanceCalendar from "../../components/AttendanceCalendar";
-import { useLiveTimer } from "../../hooks/useLiveTimer";
 import { getEmployeeByIdService } from "../../services/employeeService";
 import { getAnnouncements } from "../../services/announcementService";
 import { PostCheckInService, PutCheckOutService, getEmployeeAttendanceService } from "../../services/attendenceService"; // Assuming this service exists
+import { useLiveTimer } from "../../hooks/useLiveTimer";
+import { useAuth } from "../../hooks/useAuth";
 
-interface EmployeeInfo {
-    label: string;
-    value: string;
+interface EmployeeInfoType {
+    fullName?: string;
+    email?: string;
+    position?: string;
+    companyExperience?: string;
+    totalExperience?: string;
+    address?: string;
+}
+
+interface AttendanceEntry{
+    checkIn:string;
+    checkOut:string;
+    date:string;
+    status:string;
+}
+
+interface EmpObject{
+    _id?: string;
+    fullName?: string;
+    email?: string;
+    role?: string;
 }
 
 interface Announcement {
     _id: number;
     title: string;
     message: string;
-    postedBy: string;
+    postedBy: EmpObject;
     postedDate: Date;
     expiryDate: Date;
-    visibility?: string; // Optional field for visibility
+    visibility?: string;
 }
 
-
 const EmployeeDashboard = () => {
-    const [employeeInfo, setEmployeeInfo] = useState<Array<EmployeeInfo>>([]);
+    const { user, setUser } = useAuth();
+    const [employeeInfo, setEmployeeInfo] = useState<EmployeeInfoType>({});
     const [announcements, setAnnouncements] = useState<Array<Announcement>>([]);
     const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
-    const [todayAttendance, setTodayAttendance] = useState<{
-        checkIn: string | null;
-        checkOut: string | null;
-        status: string;
-    } | null>(null);
-    const [yesterdayAttendance, setYesterdayAttendance] = useState<{
-        checkIn: string | null;
-        checkOut: string | null;
-        status: string;
-    } | null>(null);
-
-
-    const employeeId = localStorage.getItem("employeeId") || "";
-
+    const [todayAttendance, setTodayAttendance] = useState<AttendanceEntry | null>(null);
+    const [yesterdayAttendance, setYesterdayAttendance] = useState<AttendanceEntry | null>(null);
     const liveDuration = useLiveTimer(todayAttendance?.checkIn || "", todayAttendance?.checkOut || "");
+    const employeeId = user?.id || ""
 
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                setUser(parsedUser);
+            } catch (error) {
+                console.error('Error parsing stored user:', error);
+                localStorage.removeItem('user'); // Clean up invalid data
+            }
+        }
+    }, []);
 
+    // Check-in and Check-out functions
     const checkInOnClick = () => {
         PostCheckInService(employeeId)
             .then((res) => {
@@ -57,7 +78,6 @@ const EmployeeDashboard = () => {
                 console.error("Error during check-in:", error);
             });
     }
-
     const checkOutOnClick = () => {
         PutCheckOutService(employeeId)
             .then((res) => {
@@ -78,37 +98,39 @@ const EmployeeDashboard = () => {
         return getFormattedDate(date);
     };
 
-
+// get attendenece of the employee
     useEffect(() => {
-        const employeeId = localStorage.getItem("employeeId") || "";
+       if(employeeId){
 
-        getEmployeeAttendanceService(employeeId)
-            .then((res) => {
-                const todayStr = getFormattedDate(new Date());
-                const yesterdayStr = getYesterdayDate();
-
-                const todayRecord = res.data.find((entry: any) => entry.date === todayStr);
-                const yesterdayRecord = res.data.find((entry: any) => entry.date === yesterdayStr);
-
-                if (todayRecord) {
-                    setTodayAttendance({
-                        checkIn: todayRecord.checkIn || null,
-                        checkOut: todayRecord.checkOut || null,
-                        status: todayRecord.status,
-                    });
-                }
-
-                if (yesterdayRecord) {
-                    setYesterdayAttendance({
-                        checkIn: yesterdayRecord.checkIn || null,
-                        checkOut: yesterdayRecord.checkOut || null,
-                        status: yesterdayRecord.status,
-                    });
-                }
-            })
-            .catch((err) => {
-                console.error("Error fetching attendance data:", err);
-            });
+           getEmployeeAttendanceService(employeeId)
+               .then((res) => {
+                   const todayStr = getFormattedDate(new Date());
+                   const yesterdayStr = getYesterdayDate();
+                   console.log("employee attendence: ",res.data)
+   
+                   const todayRecord = res.data.find((entry: AttendanceEntry) => entry.date === todayStr);
+                   const yesterdayRecord = res.data.find((entry: AttendanceEntry) => entry.date === yesterdayStr);
+   
+                   if (todayRecord) {
+                       setTodayAttendance({
+                           checkIn: todayRecord.checkIn || null,
+                           checkOut: todayRecord.checkOut || null,
+                           status: todayRecord.status,
+                       });
+                   }
+   
+                   if (yesterdayRecord) {
+                       setYesterdayAttendance({
+                           checkIn: yesterdayRecord.checkIn || null,
+                           checkOut: yesterdayRecord.checkOut || null,
+                           status: yesterdayRecord.status,
+                       });
+                   }
+               })
+               .catch((err) => {
+                   console.error("Error fetching attendance data:", err);
+               });
+       }
     }, []);
 
 
@@ -144,15 +166,16 @@ const EmployeeDashboard = () => {
 
     // Fetch employee details 
     useEffect(() => {
-        const employeeId = localStorage.getItem("employeeId") || "";
-        getEmployeeByIdService(employeeId)
-            .then(data => {
-                // console.log("Employee details fetched:", data);
-                setEmployeeInfo(data.user);
-            })
-            .catch(error => {
-                console.error("Error fetching employee information:", error);
-            });
+        if(employeeId){
+            getEmployeeByIdService(employeeId)
+                .then(res => {
+                    console.log("Employee details fetched:", res.user);
+                    setEmployeeInfo(res.user);
+                })
+                .catch(error => {
+                    console.error("Error fetching employee information:", error);
+                });
+        }
     }, []);
 
     const EmployeeInfo = [

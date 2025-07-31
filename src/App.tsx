@@ -8,10 +8,15 @@ import './App.css'
 import LeavePage from './pages/Common/LeavePage'
 import LeaveRequests from './pages/Common/LeaveRequests'
 import DepartmentPage from './pages/Common/DepartmentPage'
+import { useAuth } from './hooks/useAuth'
 
 // import PrivateRoute from './routes/PrivateRoute'
 
 function App() {
+
+  const {loading} = useAuth();
+
+  if (loading) return <div>Loading...</div>;
 
   return (
       <Routes>
