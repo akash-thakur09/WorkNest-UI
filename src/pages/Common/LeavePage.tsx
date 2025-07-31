@@ -1,7 +1,7 @@
 import Navbar from "../../components/Navbar";
 import { applyLeaveService, getAllLeavesByEmployeeIdService } from "../../services/leaveServices";
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect,useState } from "react";
+import {useAuth} from "../../hooks/useAuth"
 
 
 interface Leave {
@@ -34,8 +34,9 @@ const LeavePage = () => {
     const [fromDate, setFromDate] = useState<Date | null>(null);
     const [toDate, setToDate] = useState<Date | null>(null);    
     const [leavePopVisible, setLeavePopVisible] = useState(false);
-    const managerId = localStorage.getItem("managerId");
-    const employeeId = localStorage.getItem("employeeId");
+    const {user} = useAuth();
+    const managerId = user?.managerId;
+    const employeeId = user?.id;
 
     const applyForLeave = () => {
         applyLeaveService({
@@ -110,9 +111,6 @@ const LeavePage = () => {
                         </button>
                     </div>
 
-                    {/* <div className="h-[90%] bg-red-400"> */}
-                    {/* <div className="flex-1 h-[90%] bg-red-400"> */}
-                    {/* Table */}
                     <div className="rounded shadow h-[80%] overflow-auto">
                         <table className="min-w-full text-xs text-left text-gray-600">
                             <thead className="text-xs uppercase bg-gray-100 text-gray-700">

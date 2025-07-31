@@ -11,7 +11,8 @@ import {
   FaArrowLeft,
   FaArrowRight,
 } from "react-icons/fa";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 const navItems = [
   {
@@ -60,20 +61,20 @@ const navItems = [
 ];
 
 const Navbar = () => {
+  const { logout, user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const role = localStorage.getItem("role") || "Employee";
+  const role = user?.role || "Employee";
 
   const filteredNavItems = navItems.filter((item) =>
     item.roles.includes(role)
   );
 
+
   // ✅ This is the actual logout action
   const confirmLogout = () => {
-    localStorage.clear();
-    navigate("/login");
+    logout();
   };
 
   return (

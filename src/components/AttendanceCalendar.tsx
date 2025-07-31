@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getEmployeeAttendanceService } from "../services/attendenceService";
+import { useAuth } from "../hooks/useAuth";
 
 type AttendanceStatus = "Present" | "Absent" | "Leave" | "Half Day";
 
@@ -17,6 +18,8 @@ const statusColorMap: Record<AttendanceStatus, string> = {
 
 const AttendanceCalendar = () => {
   const [attendanceData, setAttendanceData] = useState<Attendance[]>([]);
+  const {user} = useAuth();
+  const employeeId = user?.id || "";
 
   const today = new Date();
   const year = today.getFullYear();
@@ -25,11 +28,10 @@ const AttendanceCalendar = () => {
   const startDay = new Date(year, month, 1).getDay();
 
   useEffect(() => {
-  const employeeId = localStorage.getItem("employeeId");
 
   getEmployeeAttendanceService(employeeId!)
     .then((res) => {
-      console.log("Attendance data fetched:", res.data);
+      console.log("Attendance data fetched in calender component:", res.data);
 
       const fetchedData: Attendance[] = res.data.map((entry: Attendance) => ({
         date: entry.date,

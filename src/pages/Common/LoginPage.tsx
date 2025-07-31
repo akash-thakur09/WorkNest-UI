@@ -1,23 +1,22 @@
-import { useState } from "react";
+import { useState} from "react";
 import { loginService } from "../../services/authService";
 import {useNavigate} from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
+    const {login } = useAuth();
+
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
         loginService({ email, password })
             .then(response => {
-                console.log("Login successful:", response.user);
-                localStorage.setItem("token", response.token); // Assuming the response contains a token
-                localStorage.setItem("user", JSON.stringify(response.user));
-                localStorage.setItem("employeeId", response.user.id);
-                localStorage.setItem("managerId", response.user.managerId);
-                localStorage.setItem("role", response.user.role);
-                navigate("/home"); // Redirect to home page after successful login
+                login(response.user)
+                localStorage.setItem("token", response.token);
+                navigate("/home");
             })
             .catch(error => {
                 console.error("Login failed:", error);
