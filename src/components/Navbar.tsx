@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   FaHome,
   FaUser,
@@ -65,17 +65,32 @@ const Navbar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const location = useLocation();
-  const role = user?.role || "Employee";
+  
+  // Memoize role to prevent unnecessary re-renders
+  const role = useMemo(() => user?.role || "Employee", [user?.role]);
 
-  const filteredNavItems = navItems.filter((item) =>
-    item.roles.includes(role)
-  );
+  // Memoize filtered nav items to prevent recalculation on every render
+  const filteredNavItems = useMemo(() => 
+    navItems.filter((item) => item.roles.includes(role)), [role]);
 
+  // Memoize toggle handler
+  const handleToggle = useCallback(() => {
+    setIsExpanded(!isExpanded);
+  }, [isExpanded]);
 
-  // ✅ This is the actual logout action
-  const confirmLogout = () => {
+  // Memoize logout modal handlers
+  const handleShowLogoutModal = useCallback(() => {
+    setShowLogoutModal(true);
+  }, []);
+
+  const handleHideLogoutModal = useCallback(() => {
+    setShowLogoutModal(false);
+  }, []);
+
+  // Memoize logout confirmation handler
+  const confirmLogout = useCallback(() => {
     logout();
-  };
+  }, [logout]);
 
   return (
     <div
@@ -85,7 +100,7 @@ const Navbar = () => {
     >
       {/* Toggle Button */}
       <div className="flex justify-end p-3">
-        <button className="cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+        <button className="cursor-pointer" onClick={handleToggle}>
           {isExpanded ? <FaArrowLeft size={20} /> : <FaArrowRight size={20} />}
         </button>
       </div>
@@ -109,7 +124,7 @@ const Navbar = () => {
       {/* Logout Button (triggers modal) */}
       <button
         className="flex items-center gap-4 px-4 py-2 my-8 mx-2 rounded hover:bg-gray-700 transition"
-        onClick={() => setShowLogoutModal(true)}
+        onClick={handleShowLogoutModal}
       >
         <span className="text-xl">
           <FaSignOutAlt />
@@ -125,7 +140,7 @@ const Navbar = () => {
             <p className="text-gray-600 mb-6">Are you sure you want to log out?</p>
             <div className="flex justify-center gap-4">
               <button
-                onClick={() => setShowLogoutModal(false)}
+                onClick={handleHideLogoutModal}
                 className="px-4 py-2 rounded bg-gray-300 text-gray-700 hover:bg-gray-400"
               >
                 Cancel
