@@ -4,7 +4,7 @@ type AuthContextType = {
     user: User | null;
     isAuthenticated: boolean;
     setUser: (user: User) => void;
-    login: (user: User) => void;
+    login: (user: User, token: string) => void;
     logout: () => void;
     loading: boolean;
 }

@@ -9,17 +9,22 @@ import LeavePage from './pages/Common/LeavePage'
 import LeaveRequests from './pages/Common/LeaveRequests'
 import DepartmentPage from './pages/Common/DepartmentPage'
 import { useAuth } from './hooks/useAuth'
-
-// import PrivateRoute from './routes/PrivateRoute'
+import { PrivateRoute } from './components/PrivateRoute'
 
 function App() {
 
   const {loading} = useAuth();
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+      </div>
+    );
+  }
 
   return (
-      <Routes>
+    <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
@@ -28,43 +33,53 @@ function App() {
       <Route
         path="/home"
         element={
-          // <PrivateRoute>
+          <PrivateRoute>
             <HomePage />
-          // </PrivateRoute>
+          </PrivateRoute>
         }
       />
       <Route
         path="/profile"
         element={
-          // <PrivateRoute>
+          <PrivateRoute>
             <ProfilePage />
-          // </PrivateRoute>
+          </PrivateRoute>
         }
       />
       <Route
         path="/apply-leave"
         element={
-          // <PrivateRoute>
+          <PrivateRoute>
             <LeavePage />
-          // </PrivateRoute>
-        } 
-
-        />
-        <Route
-          path="/leave-requests"
-          element = {
-            <LeaveRequests/>
-          }
-          />
-          <Route
-          path="/departments"
-          element = {
-            <DepartmentPage/>
-          }
-          />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/leave-requests"
+        element={
+          <PrivateRoute allowedRoles={['Admin', 'HR', 'Manager']}>
+            <LeaveRequests />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/departments"
+        element={
+          <PrivateRoute allowedRoles={['Admin', 'HR']}>
+            <DepartmentPage />
+          </PrivateRoute>
+        }
+      />
 
       {/* Catch-all route */}
-      <Route path="*" element={<div>404 - Page Not Found</div>} />
+      <Route path="*" element={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gray-800">404</h1>
+            <p className="text-gray-600 mt-2">Page Not Found</p>
+          </div>
+        </div>
+      } />
     </Routes>
   )
 }

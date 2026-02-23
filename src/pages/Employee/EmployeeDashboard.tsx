@@ -42,7 +42,7 @@ interface Announcement {
 }
 
 const EmployeeDashboard = () => {
-    const { user, setUser } = useAuth();
+    const { user } = useAuth();
     const [employeeInfo, setEmployeeInfo] = useState<EmployeeInfoType>({});
     const [announcements, setAnnouncements] = useState<Array<Announcement>>([]);
     const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
@@ -52,19 +52,6 @@ const EmployeeDashboard = () => {
     
     // Memoize employeeId to prevent unnecessary re-renders
     const employeeId = useMemo(() => user?.id || "", [user?.id]);
-
-    useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            try {
-                const parsedUser = JSON.parse(storedUser);
-                setUser(parsedUser);
-            } catch (error) {
-                console.error('Error parsing stored user:', error);
-                localStorage.removeItem('user'); // Clean up invalid data
-            }
-        }
-    }, [setUser]);
 
     // Memoize date utility functions
     const getFormattedDate = useCallback((date: Date) => {
@@ -178,20 +165,22 @@ const EmployeeDashboard = () => {
     // Fetch announcements
     // This will filter announcements based on the role and current date
     useEffect(() => {
-        const role = localStorage.getItem("role") || "Employee";
+        const role = user?.role || "Employee";
         getAnnouncements(role)
             .then(res => {
+                const currentDate = new Date();
                 const filteredAnnouncements = res.data.filter((announcement: Announcement) => {
-                    const currentDate = new Date();
-                    return new Date(announcement.expiryDate) >= currentDate && announcement.visibility === "All" || announcement.visibility === role;
+                    const isNotExpired = new Date(announcement.expiryDate) >= currentDate;
+                    const isVisibleToUser = announcement.visibility === "All" || announcement.visibility === role;
+                    return isNotExpired && isVisibleToUser;
                 });
-                console.log('filteredAnnouncements: ',filteredAnnouncements);
+                console.log('filteredAnnouncements: ', filteredAnnouncements);
                 setAnnouncements(filteredAnnouncements);
             })
             .catch(error => {
                 console.error("Error fetching announcements:", error);
             });
-    }, []);
+    }, [user?.role]);
 
     // Fetch employee details 
     useEffect(() => {

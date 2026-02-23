@@ -3,6 +3,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import type { User } from '../types/userType';
 import type { AuthContextType } from '../types/authContextType';
 import { useNavigate } from 'react-router-dom';
+import { STORAGE_KEYS, ROUTES } from '../constants';
 
 // 1️⃣ Create context with proper typing
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,8 +20,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // 3️⃣ On initial load: check localStorage
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
+        const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+        const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
 
         if (token && storedUser) {
             try {
@@ -29,33 +30,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setIsAuthenticated(true);
             } catch (error) {
                 console.error('Error parsing stored user:', error);
-                localStorage.removeItem('user');
-                localStorage.removeItem('token');
+                localStorage.removeItem(STORAGE_KEYS.USER);
+                localStorage.removeItem(STORAGE_KEYS.TOKEN);
             }
         }
 
-        setLoading(false); // ✅ done checking
+        setLoading(false);
     }, []);
 
-    // 4️⃣ Sync user state to localStorag
-    useEffect(() => {
-        if (user) {
-            localStorage.setItem('user', JSON.stringify(user));
-        }
-    }, [user]);
-
     // 5️⃣ Auth actions
-    const login = (user: User) => {
+    const login = (user: User, token: string) => {
         setUser(user);
         setIsAuthenticated(true);
-        setLoading(false); // just in case
+        setLoading(false);
+        localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
     };
 
     const logout = () => {
         setUser(null);
         setIsAuthenticated(false);
-        localStorage.clear();
-        navigate('/');
+        localStorage.removeItem(STORAGE_KEYS.TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER);
+        navigate(ROUTES.LOGIN);
     };
 
     // 6️⃣ Provide context value
