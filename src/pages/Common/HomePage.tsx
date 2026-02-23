@@ -2,10 +2,12 @@
 import Navbar from "../../components/Navbar";
 import AdminDashboard from "../Admin/AdminDashboard";
 import EmployeeDashboard from "../Employee/EmployeeDashboard";
-
+import { useAuth } from "../../hooks/useAuth";
 
 const HomePage = () => {
-  const role = localStorage.getItem('role') || "Employee"; // Default to Employee if no role is set
+  const { user } = useAuth();
+  const role = user?.role || "Employee";
+
   const selectedDashboard = (role: string) => {
     switch (role) {
       case "Admin":
@@ -22,17 +24,13 @@ const HomePage = () => {
   };
 
   return (
-    <>
-      <div className="flex h-full ">
-        <Navbar />
-        <div className=" w-screen">
-          {selectedDashboard(role)}
-        </div>
-
+    <div className="flex h-full">
+      <Navbar />
+      <div className="w-screen">
+        {selectedDashboard(role)}
       </div>
-
-    </>
-  )
+    </div>
+  );
 }
 
 export default HomePage;
